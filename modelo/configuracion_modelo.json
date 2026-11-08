@@ -1,0 +1,36 @@
+{
+    "proyecto": "Clasificación y priorización de eventos de ciberseguridad",
+    "modelo": "Regresión logística",
+    "version": "1.0",
+    "fecha_exportacion_utc": "2026-10-28T01:27:10.770668+00:00",
+    "semilla": 42,
+    "variables_entrada": [
+        "Label",
+        "Criticidad_Activo",
+        "Exposicion_Internet",
+        "Cuenta_Privilegiada"
+    ],
+    "prioridades": [
+        "Baja",
+        "Media",
+        "Alta",
+        "Crítica"
+    ],
+    "categorias_evento": [
+        "Benign",
+        "DoS attacks-GoldenEye",
+        "DoS attacks-Hulk",
+        "DoS attacks-SlowHTTPTest",
+        "DoS attacks-Slowloris",
+        "FTP-BruteForce",
+        "SSH-Bruteforce"
+    ],
+    "registros_entrenamiento": 9465,
+    "registros_validacion": 2029,
+    "registros_prueba": 2029,
+    "python": "3.13.18",
+    "numpy": "2.1.3",
+    "pandas": "2.2.3",
+    "scikit_learn": "1.6.1",
+    "joblib": "1.6.0"
+}

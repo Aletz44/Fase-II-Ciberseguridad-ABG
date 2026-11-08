@@ -1,0 +1,10 @@
+{
+    "accuracy": 1.0,
+    "precision_macro": 1.0,
+    "recall_macro": 1.0,
+    "f1_macro": 1.0,
+    "eventos_criticos": 172,
+    "criticos_incorrectos": 0,
+    "casos_extremos_correctos": 6,
+    "casos_extremos_totales": 6
+}

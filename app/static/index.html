@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema inteligente de priorización de eventos</title>
+
+    <style>
+        /* Diseño general de la aplicación. */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f6fa;
+            color: #243247;
+            margin: 0;
+            padding: 30px 15px;
+        }
+
+        .contenedor {
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px #00000012;
+        }
+
+        h1 { font-size: 25px; margin-bottom: 8px; }
+        .subtitulo { color: #64748b; margin-bottom: 25px; }
+
+        /* Distribución de los campos de entrada. */
+        label {
+            display: block;
+            margin: 16px 0 6px;
+            font-weight: bold;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        select { border: 1px solid #cbd5e1; }
+
+        button {
+            margin-top: 25px;
+            background: #1769aa;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover { background: #10558b; }
+        button:disabled { opacity: 0.6; cursor: wait; }
+
+        /* Presentación de la prioridad calculada. */
+        #resultado {
+            display: none;
+            margin-top: 25px;
+            padding: 18px;
+            border-radius: 8px;
+            background: #eef4fa;
+        }
+
+        .prioridad { font-size: 26px; font-weight: bold; }
+        .Baja { color: #16804a; }
+        .Media { color: #1769aa; }
+        .Alta { color: #bd7800; }
+        .Crítica { color: #c62828; }
+
+        .nota { font-size: 13px; color: #64748b; margin-top: 20px; }
+    </style>
+</head>
+
+<body>
+    <main class="contenedor">
+        <h1>Sistema inteligente de priorización de eventos</h1>
+        <p class="subtitulo">Prototipo académico de ciberseguridad · Fase II</p>
+
+        <!-- Formulario con las cuatro variables del modelo entrenado. -->
+        <form id="formulario">
+            <label for="evento">Tipo de evento</label>
+            <select id="evento" required>
+                <option value="Benign">Tráfico benigno</option>
+                <option value="FTP-BruteForce">FTP-BruteForce</option>
+                <option value="SSH-Bruteforce">SSH-Bruteforce</option>
+                <option value="DoS attacks-GoldenEye">DoS GoldenEye</option>
+                <option value="DoS attacks-Hulk">DoS Hulk</option>
+                <option value="DoS attacks-SlowHTTPTest">DoS SlowHTTPTest</option>
+                <option value="DoS attacks-Slowloris">DoS Slowloris</option>
+            </select>
+
+            <label for="criticidad">Criticidad del activo</label>
+            <select id="criticidad" required>
+                <option value="Baja">Baja</option>
+                <option value="Media">Media</option>
+                <option value="Alta">Alta</option>
+            </select>
+
+            <label for="exposicion">¿Está expuesto a Internet?</label>
+            <select id="exposicion">
+                <option value="0">No</option>
+                <option value="1">Sí</option>
+            </select>
+
+            <label for="privilegiada">¿Involucra una cuenta privilegiada?</label>
+            <select id="privilegiada">
+                <option value="0">No</option>
+                <option value="1">Sí</option>
+            </select>
+
+            <button type="submit" id="boton">Analizar evento</button>
+        </form>
+
+        <!-- Resultado devuelto por el endpoint POST /predict. -->
+        <section id="resultado" aria-live="polite">
+            <p>Prioridad sugerida:</p>
+            <div id="prioridad" class="prioridad"></div>
+            <p id="mensaje"></p>
+        </section>
+
+        <p class="nota">
+            Las prioridades corresponden a una política académica de
+            clasificación. La decisión final requiere supervisión humana.
+        </p>
+    </main>
+
+    <script>
+        // Se capturan las variables y se envían a FastAPI mediante JSON.
+        document.getElementById("formulario").addEventListener(
+            "submit", async function (e) {
+                e.preventDefault();
+
+                const boton = document.getElementById("boton");
+                const resultado = document.getElementById("resultado");
+                const prioridad = document.getElementById("prioridad");
+                const mensaje = document.getElementById("mensaje");
+
+                const evento = {
+                    Label: document.getElementById("evento").value,
+                    Criticidad_Activo: document.getElementById("criticidad").value,
+                    Exposicion_Internet: Number(
+                        document.getElementById("exposicion").value
+                    ),
+                    Cuenta_Privilegiada: Number(
+                        document.getElementById("privilegiada").value
+                    )
+                };
+
+                boton.disabled = true;
+                resultado.style.display = "none";
+
+                try {
+                    // Se consulta el modelo mediante el endpoint de predicción.
+                    const respuesta = await fetch("/predict", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(evento)
+                    });
+
+                    if (!respuesta.ok) {
+                        throw new Error("Error HTTP " + respuesta.status);
+                    }
+
+                    const datos = await respuesta.json();
+
+                    prioridad.textContent = datos.prioridad_sugerida;
+                    prioridad.className =
+                        "prioridad " + datos.prioridad_sugerida;
+                    mensaje.textContent =
+                        "Resultado generado por el modelo. " +
+                        "Requiere revisión del analista.";
+
+                    resultado.style.display = "block";
+
+                } catch (error) {
+                    prioridad.textContent = "No disponible";
+                    prioridad.className = "prioridad";
+                    mensaje.textContent =
+                        "No se pudo completar la predicción: " + error.message;
+                    resultado.style.display = "block";
+                } finally {
+                    boton.disabled = false;
+                }
+            }
+        );
+    </script>
+</body>
+</html>
